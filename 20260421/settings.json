@@ -1,0 +1,267 @@
+{
+  "$schema": "https://code.claude.com/schema/settings.json",
+  "version": "2.1.104",
+  "description": "Harness Engineering Framework - Claude Code Configuration (April 2026)",
+
+  "model": {
+    "primary": "claude-sonnet-4-6-20250514",
+    "reasoning": "claude-opus-4-7-20250121",
+    "lightweight": "claude-haiku-4-5-20251001",
+    "useExtendedThinking": false,
+    "cachedPromptTTL": "1h"
+  },
+
+  "permissions": {
+    "allowed_bash_commands": [
+      "git",
+      "npm",
+      "pip",
+      "pytest",
+      "vitest",
+      "eslint",
+      "black",
+      "mypy",
+      "go",
+      "cargo",
+      "docker",
+      "curl",
+      "wget",
+      "find",
+      "grep",
+      "sed"
+    ],
+    "allow_external_api_calls": true,
+    "allow_git_push": true,
+    "allow_file_deletion": true,
+    "allow_github_operations": true,
+    "require_confirmation": [
+      "git push --force",
+      "git reset --hard",
+      "destructive database operations",
+      "credential modifications",
+      "branch deletion"
+    ]
+  },
+
+  "hooks": {
+    "before_commit": {
+      "enabled": true,
+      "commands": [
+        "npm run lint || true",
+        "npm run format || true",
+        "npm run type-check || true"
+      ],
+      "failureMode": "warn"
+    },
+    "after_edit": {
+      "enabled": true,
+      "commands": [
+        "node -e \"console.log('✅ Edit completed')\""
+      ]
+    },
+    "before_test": {
+      "enabled": true,
+      "commands": [
+        "npm run lint:fix || true"
+      ]
+    }
+  },
+
+  "project": {
+    "name": "Harness Engineering Framework",
+    "type": "multi-agent-orchestration",
+    "description": "High-performance AI agent harness with token optimization",
+    "languages": ["Python", "TypeScript", "Go"],
+    "frameworks": ["Claude API", "CrewAI", "Haystack", "n8n"]
+  },
+
+  "context": {
+    "maxContextWindow": 170000,
+    "safetyMargin": 20000,
+    "effectiveMax": 150000,
+    "cacheOptimizationTarget": 0.75,
+    "conversationHistorySize": 10,
+    "pruneOldMessagesAbove": 20000
+  },
+
+  "tokenOptimization": {
+    "enabled": true,
+    "strategy": "balanced",
+    "monthlyBudget": 500000,
+    "budgetAllocation": {
+      "planning": 0.15,
+      "implementation": 0.60,
+      "review": 0.20,
+      "reserve": 0.05
+    },
+    "modelRouting": {
+      "planning": "claude-haiku-4-5-20251001",
+      "implementation": "claude-sonnet-4-6-20250514",
+      "review": "claude-opus-4-7-20250121",
+      "simple_queries": "claude-haiku-4-5-20251001"
+    },
+    "ragEnabled": true,
+    "batchApiEnabled": true
+  },
+
+  "caching": {
+    "enabled": true,
+    "ttl": "1h",
+    "cacheablePatterns": [
+      "system_instructions",
+      "project_context",
+      "architecture_overview",
+      "code_libraries",
+      "style_guides"
+    ],
+    "nonCacheablePatterns": [
+      "conversation_history",
+      "api_responses",
+      "user_input",
+      "real_time_data"
+    ]
+  },
+
+  "git": {
+    "strategy": "git-flow",
+    "defaultBranch": "develop",
+    "featureBranchPattern": "feature/**",
+    "bugfixBranchPattern": "bugfix/**",
+    "releaseBranchPattern": "release/**",
+    "hotfixBranchPattern": "hotfix/**",
+    "autoCommit": false,
+    "commitMessageFormat": "{type}({scope}): {subject}",
+    "requireTests": true,
+    "requireLinting": true
+  },
+
+  "quality": {
+    "minTestCoverage": 0.85,
+    "minTypeScriptStrict": true,
+    "minLintingScore": 95,
+    "performanceTargets": {
+      "apiResponseTime": "< 200ms",
+      "firstTokenLatency": "< 150ms",
+      "totalLatency": "< 8s"
+    },
+    "securityChecks": {
+      "enabled": true,
+      "scanSecrets": true,
+      "auditDependencies": true,
+      "checkOWASP": true
+    }
+  },
+
+  "monitoring": {
+    "enabled": true,
+    "logLevel": "INFO",
+    "trackTokenUsage": true,
+    "trackExecutionTime": true,
+    "trackCacheHitRate": true,
+    "alertThresholds": {
+      "tokenBudgetPercent": 80,
+      "costAlertUSD": 500,
+      "errorRate": 0.05,
+      "cacheHitRateMin": 0.6
+    }
+  },
+
+  "collaboration": {
+    "multiAgentEnabled": true,
+    "agentArchitecture": "3-layer",
+    "agents": {
+      "planner": {
+        "model": "claude-haiku-4-5-20251001",
+        "responsibility": "Task decomposition, planning, risk assessment",
+        "maxTokens": 2000,
+        "timeout": 60
+      },
+      "developer": {
+        "model": "claude-sonnet-4-6-20250514",
+        "responsibility": "Code generation, testing, implementation",
+        "maxTokens": 4000,
+        "timeout": 300
+      },
+      "reviewer": {
+        "model": "claude-opus-4-7-20250121",
+        "responsibility": "Quality assurance, security audit, approval",
+        "maxTokens": 2000,
+        "timeout": 180
+      }
+    },
+    "coordinationStrategy": "adaptive",
+    "contextSharing": true
+  },
+
+  "output": {
+    "formatCode": true,
+    "generateDocumentation": true,
+    "createTestCases": true,
+    "generateReadme": true,
+    "includeLicense": true,
+    "licenseName": "MIT"
+  },
+
+  "security": {
+    "secretScanningEnabled": true,
+    "credentialsFile": ".env",
+    "excludeFromScan": [
+      ".git",
+      "node_modules",
+      ".venv",
+      "dist",
+      "build"
+    ],
+    "encryptionRequired": true,
+    "auditLogging": true
+  },
+
+  "development": {
+    "strictMode": true,
+    "debugLogging": false,
+    "watchMode": false,
+    "autoReload": false,
+    "prettyErrors": true
+  },
+
+  "integration": {
+    "github": {
+      "enabled": true,
+      "autoCreatePR": false,
+      "requireApproval": true,
+      "enableAutoMerge": false,
+      "enableCodeReview": true
+    },
+    "slack": {
+      "enabled": false,
+      "webhookUrl": null
+    },
+    "jira": {
+      "enabled": false,
+      "baseUrl": null
+    }
+  },
+
+  "performance": {
+    "parallelExecution": true,
+    "maxConcurrentTasks": 3,
+    "enableCaching": true,
+    "optimizeFor": "quality",
+    "timeout": 600000
+  },
+
+  "experimental": {
+    "enableExtendedThinking": false,
+    "enableVisionCapability": false,
+    "enableFunctionCalling": true,
+    "enableStreamingResponses": true
+  },
+
+  "metadata": {
+    "createdAt": "2026-04-21T00:00:00Z",
+    "author": "Harness Engineering Framework",
+    "version": "1.0.0",
+    "environment": "production",
+    "notes": "Based on April 2026 latest trends in AI orchestration and harness engineering"
+  }
+}
