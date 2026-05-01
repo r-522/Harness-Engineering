@@ -1,0 +1,192 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": {
+          "tool": "Edit",
+          "path": "/\\.ts$/"
+        },
+        "commands": [
+          {
+            "type": "shell",
+            "command": "npm run type-check",
+            "timeout": 30000,
+            "failOnError": false
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "tool": "Edit",
+          "path": "/(secrets\\.json|\\.env|\\.env\\.local|credentials\\.json)$/"
+        },
+        "commands": [
+          {
+            "type": "llm",
+            "prompt": "⚠️ 警告: 機密情報ファイルの編集が検出されました。秘密情報がコミット対象になっていないか確認してください。本当に編集しますか？",
+            "model": "claude-opus-4-7"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": {
+          "tool": "Bash",
+          "command": "/npm (test|run build|run lint)/"
+        },
+        "commands": [
+          {
+            "type": "shell",
+            "command": "npm run type-check",
+            "timeout": 30000,
+            "failOnError": false
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "tool": "Edit",
+          "path": "/src\\/.*\\.ts$/"
+        },
+        "commands": [
+          {
+            "type": "shell",
+            "command": "npm run lint:fix",
+            "timeout": 20000,
+            "failOnError": false
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": {},
+        "commands": [
+          {
+            "type": "shell",
+            "command": "npm run type-check",
+            "timeout": 30000,
+            "failOnError": false
+          },
+          {
+            "type": "shell",
+            "command": "npm test -- --passWithNoTests",
+            "timeout": 60000,
+            "failOnError": false
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": {
+          "type": "error"
+        },
+        "commands": [
+          {
+            "type": "shell",
+            "command": "echo '❌ エラーが発生しました' >&2",
+            "failOnError": false
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": [
+    {
+      "tool": "Bash",
+      "permission": "allow",
+      "scope": "global"
+    },
+    {
+      "tool": "Edit",
+      "permission": "allow",
+      "scope": "global"
+    },
+    {
+      "tool": "Write",
+      "permission": "allow",
+      "scope": "global"
+    },
+    {
+      "tool": "Read",
+      "permission": "allow",
+      "scope": "global"
+    },
+    {
+      "tool": "WebSearch",
+      "permission": "allow",
+      "scope": "global"
+    },
+    {
+      "tool": "WebFetch",
+      "permission": "allow",
+      "scope": "global"
+    },
+    {
+      "tool": "Agent",
+      "permission": "allow",
+      "scope": "global"
+    }
+  ],
+  "skills": [
+    {
+      "name": "simplify",
+      "enabled": true,
+      "description": "コード品質向上・重複排除・最適化"
+    },
+    {
+      "name": "review",
+      "enabled": true,
+      "description": "コードレビュー自動実施"
+    },
+    {
+      "name": "init",
+      "enabled": true,
+      "description": "プロジェクト初期化（CLAUDE.md等生成）"
+    },
+    {
+      "name": "loop",
+      "enabled": true,
+      "description": "定期実行タスク"
+    }
+  ],
+  "mcp": [
+    {
+      "name": "git",
+      "enabled": true,
+      "description": "Git 操作（コミット・ブランチ・マージ）"
+    },
+    {
+      "name": "github",
+      "enabled": true,
+      "description": "GitHub API（PR・Issue・Review）"
+    }
+  ],
+  "environment": {
+    "NODE_ENV": "development",
+    "DEBUG": "false"
+  },
+  "formatting": {
+    "prettier": true,
+    "prettierConfig": ".prettierrc.json",
+    "eslint": true,
+    "eslintConfig": ".eslintrc.json"
+  },
+  "linting": {
+    "onSave": true,
+    "autoFix": true,
+    "ignorePatterns": [
+      "node_modules/",
+      "dist/",
+      "build/",
+      ".git/"
+    ]
+  },
+  "testing": {
+    "framework": "jest",
+    "configPath": "jest.config.js",
+    "autoCoverageThreshold": 80
+  }
+}
