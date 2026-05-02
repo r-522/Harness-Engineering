@@ -1,0 +1,300 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "description": "Claude Code Configuration for Harness-Engineering (Organization-Scale AI Orchestration)",
+    "created_date": "2026-05-02",
+    "harness_pattern": "agent-teams",
+    "optimization_focus": "context-efficiency, automation, multi-agent coordination"
+  },
+  "permissions": {
+    "global": {
+      "description": "Global tool access (all agents, all scenarios)",
+      "allowed": [
+        "read_files",
+        "bash_execution",
+        "git_operations"
+      ],
+      "blocked": [
+        "destructive_git_operations",
+        "external_api_calls_unvalidated"
+      ]
+    },
+    "agent_profiles": {
+      "dev_agent": {
+        "description": "Code development & implementation",
+        "tools": [
+          "read_files",
+          "write_files",
+          "edit_files",
+          "bash_execution",
+          "bash_background",
+          "git_operations",
+          "glob_search",
+          "grep"
+        ],
+        "restrictions": {
+          "no_force_push": true,
+          "no_system_commands": true,
+          "no_external_api_without_auth": true
+        }
+      },
+      "review_agent": {
+        "description": "Code review & quality analysis",
+        "tools": [
+          "read_files",
+          "bash_execution",
+          "mcp__github__request_copilot_review",
+          "mcp__github__pull_request_review_write",
+          "mcp__github__pull_request_read",
+          "mcp__github__get_file_contents",
+          "mcp__github__run_secret_scanning"
+        ],
+        "restrictions": {
+          "no_write_files": true,
+          "no_code_modification": true
+        }
+      },
+      "deploy_agent": {
+        "description": "Deployment & infrastructure operations",
+        "tools": [
+          "bash_execution",
+          "bash_background",
+          "bash_timeout_long",
+          "git_operations",
+          "mcp__github__create_pull_request",
+          "mcp__github__merge_pull_request",
+          "mcp__github__subscribe_pr_activity"
+        ],
+        "restrictions": {
+          "no_code_edit": true,
+          "deployment_approval_required": true
+        }
+      },
+      "test_agent": {
+        "description": "Test execution & verification",
+        "tools": [
+          "read_files",
+          "bash_execution",
+          "bash_background",
+          "bash_timeout_long",
+          "glob_search"
+        ],
+        "restrictions": {
+          "no_file_modification": true
+        }
+      }
+    }
+  },
+  "hooks": {
+    "pre_commit": {
+      "enabled": true,
+      "command": "npm run lint --fix && npm run type-check",
+      "stages": [
+        "staged_files"
+      ],
+      "timeout_seconds": 10,
+      "blocking": true,
+      "fail_message": "Lint or type errors found. Fix errors manually and retry commit.",
+      "log_output": true
+    },
+    "pre_push": {
+      "enabled": true,
+      "command": "npm test -- --coverage && npm run type-check && npm run build",
+      "timeout_seconds": 60,
+      "blocking": true,
+      "fail_message": "Tests failed or build errors. Fix and retry push.",
+      "log_output": true
+    },
+    "post_merge": {
+      "enabled": true,
+      "command": "sh scripts/hooks/post-merge.sh",
+      "trigger_ref": "main",
+      "timeout_seconds": 5,
+      "blocking": false,
+      "description": "Trigger CI pipeline, notify team",
+      "log_output": true
+    },
+    "on_test_failure": {
+      "enabled": true,
+      "command": "sh scripts/hooks/on-test-failure.sh",
+      "trigger_event": "github_check_failure",
+      "timeout_seconds": 5,
+      "blocking": false,
+      "description": "Escalate test failure",
+      "log_output": true
+    },
+    "post_deploy": {
+      "enabled": true,
+      "command": "sh scripts/hooks/post-deploy.sh",
+      "trigger_event": "deployment_complete",
+      "timeout_seconds": 30,
+      "blocking": false,
+      "description": "Smoke test and notify",
+      "log_output": true
+    }
+  },
+  "hook_environment_variables": {
+    "SLACK_WEBHOOK_URL": "${env:SLACK_WEBHOOK_URL}",
+    "GITHUB_TOKEN": "${env:GITHUB_TOKEN}",
+    "CI_BUILD_URL": "${env:CI_BUILD_URL}",
+    "DEPLOY_STAGING_URL": "${env:DEPLOY_STAGING_URL}",
+    "DEPLOY_PRODUCTION_URL": "${env:DEPLOY_PRODUCTION_URL}",
+    "DEPLOYMENT_ENV": "${env:DEPLOYMENT_ENV}"
+  },
+  "skills": {
+    "security_review": {
+      "enabled": true,
+      "trigger_patterns": [
+        "security check",
+        "scan for secrets",
+        "vulnerability assessment",
+        "owasp"
+      ],
+      "agent_access": "review_agent",
+      "lazy_load": true,
+      "file_path": "src/skills/security-review.md"
+    },
+    "code_review": {
+      "enabled": true,
+      "trigger_patterns": [
+        "review pr",
+        "code review",
+        "check quality",
+        "quality assessment"
+      ],
+      "agent_access": "review_agent",
+      "lazy_load": true,
+      "file_path": "src/skills/code-review.md"
+    },
+    "plan_orchestration": {
+      "enabled": true,
+      "trigger_patterns": [
+        "design agent workflow",
+        "plan subagent tasks",
+        "orchestration strategy",
+        "multi-agent design"
+      ],
+      "agent_access": "dev_agent",
+      "lazy_load": true,
+      "thinking_enabled": true,
+      "file_path": "src/skills/plan-orchestration.md"
+    },
+    "hook_setup": {
+      "enabled": true,
+      "trigger_patterns": [
+        "configure hook",
+        "automate workflow",
+        "pre-commit",
+        "automation setup"
+      ],
+      "agent_access": "dev_agent",
+      "lazy_load": true,
+      "file_path": "src/skills/hook-setup.md"
+    },
+    "git_advanced": {
+      "enabled": true,
+      "trigger_patterns": [
+        "rebase interactive",
+        "squash commits",
+        "reset hard",
+        "force-push",
+        "cherry-pick"
+      ],
+      "agent_access": "dev_agent",
+      "lazy_load": true,
+      "requires_confirmation": true,
+      "file_path": "src/skills/git-advanced.md"
+    },
+    "performance_audit": {
+      "enabled": true,
+      "trigger_patterns": [
+        "optimize",
+        "performance",
+        "profiling",
+        "bottleneck",
+        "benchmarking"
+      ],
+      "agent_access": "test_agent",
+      "lazy_load": true,
+      "high_cost": true,
+      "file_path": "src/skills/performance-audit.md"
+    }
+  },
+  "subagent_teams": {
+    "enabled": true,
+    "coordination_mode": "shared_task_state",
+    "teams": {
+      "implementation_team": {
+        "coordinator": "dev_agent",
+        "members": [
+          "dev_agent",
+          "test_agent"
+        ],
+        "shared_state_file": ".claude/state/implementation.json",
+        "timeout_minutes": 30
+      },
+      "review_deployment_team": {
+        "coordinator": "review_agent",
+        "members": [
+          "review_agent",
+          "deploy_agent"
+        ],
+        "shared_state_file": ".claude/state/review-deploy.json",
+        "timeout_minutes": 15
+      }
+    }
+  },
+  "context_optimization": {
+    "claude_md_max_lines": 70,
+    "auto_compress_verbose_output": true,
+    "skill_lazy_load_enabled": true,
+    "skill_max_inline_lines": 200,
+    "compressed_output_format": "summary_with_key_results"
+  },
+  "mcp_servers": {
+    "github": {
+      "enabled": true,
+      "scope": "r-522/harness-engineering",
+      "operations": [
+        "pull_request_read",
+        "pull_request_review_write",
+        "issue_read",
+        "issue_write",
+        "run_secret_scanning",
+        "search_code",
+        "search_issues",
+        "search_pull_requests"
+      ]
+    }
+  },
+  "logging": {
+    "enabled": true,
+    "log_directory": ".claude/logs",
+    "log_files": {
+      "hooks": "hooks.log",
+      "deployments": "deployments.log",
+      "failures": "failures.log",
+      "agent_state": "agent-state.log"
+    },
+    "retention_days": 30,
+    "compression": "gzip_after_7_days"
+  },
+  "security": {
+    "secret_scanning_enabled": true,
+    "github_secret_detection": true,
+    "patterns_checked": [
+      "aws_keys",
+      "github_tokens",
+      "api_keys",
+      "database_credentials",
+      "slack_webhooks"
+    ],
+    "fail_on_secrets_found": true
+  },
+  "development_mode": {
+    "enabled": false,
+    "debug_output": false,
+    "verbose_logging": false,
+    "allow_experimental_skills": false
+  }
+}
