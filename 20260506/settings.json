@@ -1,0 +1,176 @@
+{
+  "version": "2026-05-06",
+  "description": "Claude Code Team-Shared Settings for Harness Engineering",
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "name": "git-status-check",
+        "matcher": ".*",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "git status --short | head -10 || true"
+          }
+        ]
+      },
+      {
+        "name": "context-monitor",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "echo 'ℹ️  Context monitoring enabled. Warn at 70%, stop at 95%'"
+          }
+        ]
+      }
+    ],
+
+    "PostToolUse": [
+      {
+        "name": "auto-format-typescript",
+        "matcher": "Write|Edit",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "if [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" == *.ts ]] || [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" == *.tsx ]]; then npx prettier --write \"$CLAUDE_TOOL_INPUT_FILE_PATH\" 2>/dev/null || true; fi",
+            "background": true,
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "name": "auto-format-python",
+        "matcher": "Write|Edit",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "if [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" == *.py ]]; then black \"$CLAUDE_TOOL_INPUT_FILE_PATH\" 2>/dev/null || true; fi",
+            "background": true,
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+
+    "PreToolUse": [
+      {
+        "name": "git-command-safety",
+        "matcher": "Bash",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "echo 'ℹ️  Git command detected. Ensure uncommitted work is backed up.'"
+          }
+        ]
+      }
+    ],
+
+    "Stop": [
+      {
+        "name": "output-summary",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "echo '✓ Session checkpoint reached. Context usage monitored.'"
+          }
+        ]
+      }
+    ],
+
+    "SessionEnd": [
+      {
+        "name": "cleanup-temp-files",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "find .claude -name '*.tmp' -delete 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "name": "session-summary",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "echo 'ℹ️  Session ended. Review git log for changes: git log --oneline -10'"
+          }
+        ]
+      }
+    ],
+
+    "ContextWarning": [
+      {
+        "name": "context-pressure-warning",
+        "handlers": [
+          {
+            "type": "command",
+            "command": "echo '⚠️  Context usage > 70%. Consider: (1) Delete old messages, (2) Save & restart session, (3) Use Subagent for new tasks'"
+          }
+        ]
+      }
+    ]
+  },
+
+  "permissions": {
+    "allowed_tools": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Agent",
+      "Monitor",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "git_permissions": {
+      "allowed_commands": [
+        "git status",
+        "git log",
+        "git diff",
+        "git add",
+        "git commit",
+        "git branch",
+        "git fetch"
+      ],
+      "requires_confirmation": [
+        "git push",
+        "git reset",
+        "git rebase",
+        "git merge",
+        "git stash",
+        "git clean"
+      ],
+      "forbidden": [
+        "git push --force",
+        "git reset --hard",
+        "git checkout .",
+        "git clean -f"
+      ]
+    }
+  },
+
+  "environment": {
+    "DEBUG": "false",
+    "CLAUDE_SESSION_TIMEOUT": "3600",
+    "CONTEXT_WARNING_THRESHOLD": "70",
+    "CONTEXT_LIMIT_THRESHOLD": "95"
+  },
+
+  "features": {
+    "prompt_caching": true,
+    "async_hooks": true,
+    "subagent_orchestration": true,
+    "progressive_disclosure": true
+  },
+
+  "skills": {
+    "auto_detect": true,
+    "paths": ["./.claude/skills/"]
+  },
+
+  "logging": {
+    "enabled": true,
+    "level": "info",
+    "output": ".claude/logs/"
+  }
+}
